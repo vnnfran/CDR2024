@@ -1,9 +1,10 @@
 /* 
 ~~~~~ Pins Wall-E LARC ~~~~~
-              CDR SLP 2024
+CDR SLP 2024
 */
 
 // Sensors
+// CHs for Remote Control
 #define CH1 1
 #define CH2 2
 #define CH3 3
@@ -16,7 +17,7 @@
 #define limitSwitchT 11
 #define limitSwitchB 10
 
-// Buttons
+// Switch / Emergency stop in RC
 #define startSwitch 12
 
 // Motors

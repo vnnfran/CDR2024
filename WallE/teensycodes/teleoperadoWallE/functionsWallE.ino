@@ -1,7 +1,9 @@
 /* 
-~~ Functions Wall-E LARC ~~
-                  CDR SLP 2024
+~~ Functions Wall-E LARC ~~ 
+CDR SLP 2024
 */
+
+// Remote Control version
 
 // Read the number of a specified channel and convert to the range provided.
 // If the channel is off, return the default value
@@ -19,7 +21,8 @@ bool readSwitch(byte channelInput, bool defaultValue){
 }
 
 
-// Movement
+// Movement functions
+// Wheels PWM are adjusted to make the motors go to approximately the same speed.
 void moveForward(int wheelSpeed) {
   analogWrite(wheelLFpwm, 1.13* wheelSpeed);
   analogWrite(wheelRFpwm, wheelSpeed);
@@ -152,6 +155,7 @@ void stopMoving() {
   digitalWrite(wheelRBp, LOW);   digitalWrite(wheelRBn, LOW);
 }
 
+// Function to be used in interrupts
 void Final(){
     stopMoving();
 }

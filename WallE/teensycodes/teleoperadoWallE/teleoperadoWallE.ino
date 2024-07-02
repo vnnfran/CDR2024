@@ -1,11 +1,12 @@
 /*
-  ~~~~~ Main Wall-E LARC ~~~~~
-                CDR SLP 2024
+  ~~~~~ Teleoperado Wall-E LARC ~~~~~
+  CDR SLP 2024
 
-  Make sure the documents  "mainWallE", "functionsWallE" and "pinsWallE"
-  are in the same folder ("mainWallE") as to call functions and pins  -Van :)
+  Make sure the documents  "teleoperadoWallE", "functionsWallE" and "pinsWallE"
+  are in the same folder ("teleoperadoWallE") as to call functions and pins  -Van :)
 */
 
+// Libraries
 #include "pinsWallE.h"
 #include <Servo.h>
 #include <Stepper.h>
@@ -35,8 +36,11 @@ void setup() {
   pinMode(standby, OUTPUT);  
   pinMode(stepPin,OUTPUT); pinMode(dirPin,OUTPUT); pinMode(enPin,OUTPUT);
 
+  // Attach pin to servo object
   servoGripper.attach(pinGripper);
+  // Open gripper
   servoGripper.write(0);
+  // Deactivate (HIGH) stepper motor
   digitalWrite(standby, HIGH); 
 
   delay(250);
@@ -45,8 +49,8 @@ void setup() {
 
 void loop() {
   
-  // Reads channels of RC Controller
-  // ** Multiplied by 0.4 to limit speed (255 -> 100)
+  // Initially reads channels of RC Controller
+  // Multiplied by 0.4 to limit speed (255 -> 100)
   turns = int(readChannel(CH1, -255, 255, 0) * 0.5);
   moveGripper = int(readChannel(CH2, -255, 255, 0) * 0.5);
   moveY = int(readChannel(CH3, -255, 255, 0) * 0.5);
@@ -54,10 +58,11 @@ void loop() {
   stopSwitch = readSwitch(CH5, false);
   servoSwitch = readSwitch(CH6, false);
    
+  // Loop to execute as long as stop is not activated
   while (stopSwitch == true){
 
     // Reads channels of RC Controller
-    // ** Multiplied by 0.4 to limit speed (255 -> 100)
+    // Multiplied by 0.4 to limit speed (255 -> 100)
     turns = int(readChannel(CH1, -255, 255, 0) * 0.5);
     moveGripper = int(readChannel(CH2, -255, 255, 0) * 0.5);
     moveY = int(readChannel(CH3, -255, 255, 0) * 0.5);
@@ -65,8 +70,8 @@ void loop() {
     stopSwitch = readSwitch(CH5, false);
     servoSwitch = readSwitch(CH6, false);
    
-    
     // Forward - backwards movement
+    // 15 is a threshhold value, can be adjusted to improve drivability
     if (moveY > 15){
       moveForward(moveY);
       state = "Forward";
@@ -107,20 +112,21 @@ void loop() {
     }
 
      // Raise-lower gripper
+     // Robot must be stopped before stepper can move
      else if (state == "Stopped" && moveGripper < -15){
-      digitalWrite(enPin,LOW);
-      digitalWrite(dirPin,HIGH);          // LOW is upwards
-     for(int x = 0; x < 1000; x++) {   
-        digitalWrite(stepPin,HIGH);
-        delayMicroseconds(500);
-        digitalWrite(stepPin,LOW);
-        delayMicroseconds(500);
+      digitalWrite(enPin,LOW);            // HIGH is deactivated, LOW activates
+      digitalWrite(dirPin,HIGH);          // HIGH is downwards, LOW is upwards
+     for(int x = 0; x < 1000; x++) {      // Moves only a couple of cms at a time
+        digitalWrite(stepPin,HIGH);       // Action must be repeated until desired height
+        delayMicroseconds(500);           // Value of 1000 can be changed, but be careful not to force the motor bc it won't stop
+        digitalWrite(stepPin,LOW);      
+        delayMicroseconds(500);           // Can break loop w limit switches but RC Version does not include these
        }
       state = "Raising gripper";
     }
      else if (state == "Stopped" && moveGripper > 15){
-      digitalWrite(enPin,LOW);
-      digitalWrite(dirPin,LOW);          // LOW is upwards
+      digitalWrite(enPin,LOW);           // HIGH is deactivated, LOW activates
+      digitalWrite(dirPin,LOW);          // HIGH is downwards, LOW is upwards
      for(int x = 0; x < 1000; x++) {   
         digitalWrite(stepPin,HIGH);
         delayMicroseconds(500);
@@ -131,14 +137,18 @@ void loop() {
     }
 
     // Open-close gripper
+    // Robot must be stopped before servo can move
     else if (state == "Stopped" && servoSwitch == false){
+      // Open servo
       servoGripper.write(0);
     }
     else if (state == "Stopped" && servoSwitch == true){
+      // Close servo
       servoGripper.write(80);
     }
     
     else {
+      // If no signal is received, stop moving and deactivate stepper
       stopMoving();
       digitalWrite(enPin,HIGH);
       state = "Stopped"; 
@@ -148,6 +158,7 @@ void loop() {
     delay(100);
   }
   
+  // When emergency stop is active (FALSE), stop moving and deactivate stepper
   stopMoving();
   digitalWrite(enPin,HIGH);
   Serial.println("Emergency break");
