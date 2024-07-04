@@ -1,6 +1,6 @@
 /* 
 ~~ Functions Wall-E LARC ~~
-                  CDR SLP 2024
+CDR SLP 2024
 */
 
 // Separate Serial data
